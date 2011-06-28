@@ -10,19 +10,20 @@ function Rect:new(o)
 end
 
 function Rect:draw()
+	-- note that this is a registered C function
 	draw_rectangle(self.x, self.y, self.width, self.height, self.red, self.green, self.blue)
 end
 
 function Rect:intersects(other)
-	if math.abs(self.x - other.x) < (self.width + other.width) and
-	   math.abs(self.y - other.y) < (self.height + other.height) then
-		return true
-	else
-		return false
-	end
+	return not (self.x + self.width < other.x or
+	            other.x + other.width < self.x or
+		    self.y + self.height < other.y or
+		    other.height + other.height < self.y)
 end
 
 ---------------------------
+-- side == 1: player's side
+-- else : CPU's side
 
 Paddle = {y = 0, side = 1}
 
@@ -63,6 +64,7 @@ function Paddle:move()
 end
 
 ---------------------------
+-- vx, vy is the speed
 
 Ball = {x = 0, y = 0, vx = 0.0, vy = 0.0}
 
@@ -85,6 +87,7 @@ function Ball:move()
 
 	for _, paddle in pairs(paddles) do
 		if paddle.rect:intersects(newrect) then
+			-- bounce when meets the paddle
 			self.vx = self.vx * (-1.0 + math.random(-5, 5) * 0.1)
 			self.vy = self.vy * (-1.0 + math.random(-5, 5) * 0.1)
 		end
@@ -118,9 +121,9 @@ end
 
 function all_tests()
 	describe("Rect", function()
-		r1 = Rect:new{x = 0, y = 0, w = 3, h = 1}
-		r2 = Rect:new{x = 1, y = 0, w = 2, h = 2}
-		r3 = Rect:new{x = 4, y = 0, w = 2, h = 2}
+		r1 = Rect:new{x = 0, y = 0, width = 3, height = 1}
+		r2 = Rect:new{x = 1, y = 0, width = 2, height = 2}
+		r3 = Rect:new{x = 4, y = 0, width = 2, height = 2}
 
 		it("intersects two rectangles", function()
 			return r1:intersects(r2) == true
@@ -133,6 +136,7 @@ function all_tests()
 end
 
 ---------------------------
+-- initialize the paddle and the ball
 
 paddles = { Paddle:new{side=1}, Paddle:new{side=2} }
 ball = Ball:new{x = 0.0, y = 0.0, vx = -0.005, vy = 0.005}
