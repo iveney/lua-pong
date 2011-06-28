@@ -13,6 +13,7 @@ lua_State *L;
 
 static int draw_rectangle(lua_State *L)
 {
+  /* get value from Lua */
 	float x = lua_tonumber(L, 1);
 	float y = lua_tonumber(L, 2);
 	float width = lua_tonumber(L, 3);
@@ -48,8 +49,10 @@ static int down_pressed() { return key_pressed(SDLK_DOWN); }
 static int right_pressed() { return key_pressed(SDLK_RIGHT); }
 static int left_pressed() { return key_pressed(SDLK_LEFT); }
 
+/* handle SDL key event */
 void pulse_via_lua()
 {
+  /* push the value of "pulse" to the Lua stack */
 	lua_getglobal(L, "pulse");
 	if (lua_pcall(L, 0, 0, 0) != 0) {
 		printf("error running function: %s\n", lua_tostring(L, -1));
@@ -65,18 +68,21 @@ int main(int argc, char *argv[])
 	}
 
 	L = lua_open();
-	luaopen_base(L);
-	luaopen_table(L);
-	luaopen_io(L);
-	luaopen_string(L);
-	luaopen_math(L);
+  luaL_openlibs(L); /* Lua 5.2 replce the following to this */
+	/*luaopen_base(L);*/
+	/*luaopen_table(L);*/
+	/*luaopen_io(L);*/
+	/*luaopen_string(L);*/
+	/*luaopen_math(L);*/ 
 
+  /* register C Function in Lua */
 	lua_register(L, "draw_rectangle", draw_rectangle);
 	lua_register(L, "up_pressed", up_pressed);
 	lua_register(L, "down_pressed", down_pressed);
 	lua_register(L, "right_pressed", right_pressed);
 	lua_register(L, "left_pressed", left_pressed);
 
+  /* Initialize SDL and OpenGL */
 	atexit(SDL_Quit);
 	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
 		fprintf(stderr,"Couldn't initialize SDL: %s\n", SDL_GetError());
@@ -94,6 +100,7 @@ int main(int argc, char *argv[])
 	glMatrixMode(GL_PROJECTION);
 	glMatrixMode(GL_MODELVIEW);
 
+  /* read in script file */
 	FILE *fp = fopen(argv[1], "r");
 	if (!fp) {
 		printf("no such file as %s\n", argv[1]);
@@ -104,12 +111,14 @@ int main(int argc, char *argv[])
 	buff[size] = 0;
 	fclose(fp);
 
+  /* Loads a buffer as Lua chunk */
 	if (luaL_loadbuffer(L, buff, strlen(buff), "pong") != 0 ||
 	    lua_pcall(L, 0, 0, 0) != 0) {
 		printf("error loading: %s\n", lua_tostring(L, -1));
 		exit(1);
 	}
 
+  /* Enter SDL event loop */
 	bool done = false;
 	while (!done)
 	{
@@ -132,8 +141,12 @@ int main(int argc, char *argv[])
 			}
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    /* handle key event */
 		pulse_via_lua();
 		SDL_GL_SwapBuffers();
+
+    /* change this value will affect the frame rate */
 		SDL_Delay(10);
 	}
 
