@@ -18,7 +18,7 @@ function Rect:intersects(other)
 	return not (self.x + self.width < other.x or
 	            other.x + other.width < self.x or
 		    self.y + self.height < other.y or
-		    other.height + other.height < self.y)
+		    other.y + other.height < self.y)
 end
 
 ---------------------------
