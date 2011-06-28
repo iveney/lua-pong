@@ -10,11 +10,7 @@ lua_State *L;
 int main(int argc, char*argv[])
 {
 	L = lua_open();
-	luaopen_base(L);
-	luaopen_table(L);
-	luaopen_io(L);
-	luaopen_string(L);
-	luaopen_math(L);
+	luaL_openlibs(L);
 
 	FILE *fp = fopen("pong.lua", "r");
 	char buff[10000];
