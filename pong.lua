@@ -85,6 +85,11 @@ function Ball:move()
 	newrect.x = newrect.x + self.vx
 	newrect.y = newrect.y + self.vy
 
+	-- detect boundary
+	if self.y > 1.0 or self.y < -1.0 then
+		self.vy = self.vy * (-1.0)
+	end
+
 	for _, paddle in pairs(paddles) do
 		if paddle.rect:intersects(newrect) then
 			-- bounce when meets the paddle
